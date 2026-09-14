@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Missão Órbita — Palavras e Números</title>
+<style>
+  :root{
+    --espaco:#0E1730;
+    --espaco-2:#182742;
+    --painel:#1B2A4C;
+    --painel-2:#24365E;
+    --laranja:#FF7A29;
+    --ceu:#4FC3F7;
+    --verde:#4ADE80;
+    --vermelho:#F87171;
+    --branco:#F4F8FF;
+    --leitura:#FBFCFF;
+    --escuro:#132039;
+    --display:"Trebuchet MS","Segoe UI",Tahoma,sans-serif;
+    --corpo:Verdana,"Segoe UI",Geneva,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:16px 14px 60px;min-height:100vh;
+    background:#0E1730;
+    background-image:
+      radial-gradient(2px 2px at 20% 15%,rgba(255,255,255,.55),transparent),
+      radial-gradient(1.5px 1.5px at 70% 8%,rgba(255,255,255,.45),transparent),
+      radial-gradient(2px 2px at 85% 40%,rgba(255,255,255,.4),transparent),
+      radial-gradient(1.5px 1.5px at 35% 62%,rgba(255,255,255,.35),transparent),
+      radial-gradient(2px 2px at 60% 85%,rgba(255,255,255,.4),transparent),
+      radial-gradient(ellipse at 50% -20%,rgba(79,195,247,.22),transparent 60%);
+    color:var(--branco);font-family:var(--corpo);font-size:15px;line-height:1.5;
+  }
+  .area{max-width:900px;margin:0 auto}
+
+  /* ---------- painel de comando ---------- */
+  .comando{
+    background:linear-gradient(180deg,var(--painel),var(--espaco));
+    border:1px solid rgba(255,255,255,.12);border-radius:18px;
+    padding:16px 18px;margin-bottom:24px;box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  .comando-topo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .insignia{
+    width:52px;height:52px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 35% 30%,#FFB067,var(--laranja));
+    display:grid;place-items:center;font-size:26px;
+    box-shadow:0 0 0 4px rgba(255,122,41,.2);
+  }
+  .comando h1{font-family:var(--display);font-size:23px;margin:0;letter-spacing:.01em}
+  .comando h1 span{display:block;font-family:var(--corpo);font-size:12px;color:var(--ceu);letter-spacing:.14em;margin-top:3px}
+  .btn-som{
+    margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.22);border-radius:10px;
+    color:var(--branco);font-family:var(--corpo);font-size:12px;padding:8px 12px;cursor:pointer;
+  }
+  .btn-som:hover{border-color:var(--laranja);color:var(--laranja)}
+  .medidor{margin-top:14px}
+  .medidor p{margin:0 0 6px;font-size:12px;color:#A8BCD9;letter-spacing:.08em}
+  .tanque{height:12px;background:#0C1428;border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+  .tanque i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--laranja),#FFC46B);transition:width .5s}
+
+  /* ---------- setores ---------- */
+  .setor{margin-bottom:28px}
+  .setor h2{
+    font-family:var(--display);font-size:17px;margin:0 0 2px;
+    display:flex;align-items:center;gap:9px;
+  }
+  .setor h2::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--laranja)}
+  .setor.azul h2::before{background:var(--ceu)}
+  .setor p.sub{margin:0 0 14px 20px;font-size:13px;color:#9FB4D4}
+  .missoes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .missao{
+    background:var(--painel);border:1px solid rgba(255,255,255,.1);border-radius:16px;
+    padding:15px 15px 13px;text-align:left;color:var(--branco);font-family:var(--corpo);
+    cursor:pointer;display:flex;flex-direction:column;gap:7px;transition:.15s;position:relative;
+  }
+  .missao:hover,.missao:focus-visible{
+    background:var(--painel-2);transform:translateY(-3px);
+    box-shadow:0 10px 24px rgba(0,0,0,.4);border-color:var(--laranja);outline:none;
+  }
+  .missao.azul:hover,.missao.azul:focus-visible{border-color:var(--ceu)}
+  .selo{
+    width:34px;height:34px;border-radius:50%;background:rgba(255,122,41,.16);
+    border:1px solid var(--laranja);color:var(--laranja);
+    display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px;
+  }
+  .missao.azul .selo{background:rgba(79,195,247,.14);border-color:var(--ceu);color:var(--ceu)}
+  .missao .nome{font-family:var(--display);font-size:17px;font-weight:700;line-height:1.25}
+  .missao .desc{font-size:12.5px;color:#A8BCD9;line-height:1.45}
+  .missao .selos{font-size:15px;letter-spacing:3px;color:var(--laranja)}
+  .missao .selos .off{color:#33456B}
+  .missao .semana{position:absolute;top:14px;right:14px;font-size:10.5px;color:#7E93B5}
+
+  /* ---------- missão em curso ---------- */
+  .some{display:none !important}
+  .barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .btn{
+    font-family:var(--corpo);font-size:13px;border-radius:10px;cursor:pointer;padding:10px 15px;
+    background:var(--painel);border:1px solid rgba(255,255,255,.16);color:var(--branco);transition:.15s;
+  }
+  .btn:hover{background:var(--painel-2);border-color:var(--ceu)}
+  .btn-ir{background:var(--laranja);border-color:var(--laranja);color:#20130A;font-weight:700;font-size:14px}
+  .btn-ir:hover{background:#FF9450;border-color:#FF9450}
+  .oxigenio{font-size:14px;letter-spacing:4px;color:var(--ceu)}
+  .oxigenio .off{color:#33456B}
+  .passo{margin-left:auto;font-size:12.5px;color:#9FB4D4}
+
+  .console{
+    background:var(--leitura);color:var(--escuro);border-radius:18px;padding:24px 22px;
+    box-shadow:0 14px 34px rgba(0,0,0,.4);position:relative;overflow:hidden;
+  }
+  .console::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,var(--laranja),var(--ceu));
+  }
+  .etiqueta{font-size:11.5px;letter-spacing:.14em;color:#7A8AA6;text-transform:uppercase;margin:0 0 8px}
+  .questao{font-family:var(--display);font-size:22px;font-weight:700;line-height:1.4;margin:0 0 20px}
+  .questao em{font-style:normal;background:#FFE7CF;border-radius:5px;padding:1px 6px}
+  .escolhas{display:grid;gap:11px}
+  .esc{
+    font-family:var(--corpo);font-size:15.5px;line-height:1.45;text-align:left;
+    background:#fff;border:2px solid #D8E1F0;border-radius:13px;padding:14px 16px;
+    cursor:pointer;color:var(--escuro);transition:.12s;
+  }
+  .esc:hover:not([disabled]){border-color:var(--laranja);background:#FFF7F1;transform:translateX(3px)}
+  .esc[disabled]{cursor:default;opacity:.5}
+  .esc.ok{border-color:var(--verde);background:#EAFBF0;opacity:1;font-weight:700}
+  .esc.no{border-color:var(--vermelho);background:#FEF0F0;opacity:1}
+
+  .teclado{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .teclado input{
+    font-family:var(--display);font-size:30px;font-weight:700;width:160px;padding:10px 14px;
+    border:2px solid var(--escuro);border-radius:12px;text-align:center;color:var(--escuro);background:#fff;
+  }
+  .teclado input:focus{outline:none;border-color:var(--laranja);box-shadow:0 0 0 4px rgba(255,122,41,.18)}
+
+  .esteira{
+    min-height:56px;border:2px dashed #C3D0E4;border-radius:13px;background:#F1F5FC;
+    padding:9px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:13px;
+  }
+  .esteira:empty::after{content:"Toque nas palavras na ordem certa";font-size:13px;color:#8C9CB8;padding:4px 6px}
+  .cartao{
+    font-family:var(--display);font-size:17px;font-weight:700;background:#fff;color:var(--escuro);
+    border:2px solid #D8E1F0;border-radius:11px;padding:9px 15px;cursor:pointer;
+  }
+  .cartao:hover{border-color:var(--laranja)}
+  .cartao.fixo{background:#EAFBF0;border-color:var(--verde);cursor:default}
+  .balanca{animation:balanca .3s}
+  @keyframes balanca{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+  .painel-grade{display:grid;gap:6px;justify-content:start;margin:2px 0 14px}
+  .painel-grade div{
+    width:32px;height:32px;border-radius:7px;background:#DCEBFB;border:2px solid var(--ceu);
+    animation:aparece .22s backwards;
+  }
+  @keyframes aparece{from{opacity:0;transform:scale(.4)}}
+  .medida{font-size:13px;color:#5C6E8C;margin:0 0 16px}
+
+  .relatorio{margin-top:18px;border-radius:13px;padding:14px 16px;font-size:15px;line-height:1.55}
+  .relatorio.ok{background:#EAFBF0;border-left:5px solid var(--verde)}
+  .relatorio.no{background:#FFF4E8;border-left:5px solid var(--laranja)}
+  .relatorio strong{display:block;font-family:var(--display);font-size:16px;margin-bottom:5px}
+  .relatorio em{font-style:normal;background:#FFE7CF;border-radius:4px;padding:0 4px}
+  .voa{
+    position:absolute;right:22px;top:20px;font-family:var(--display);font-size:22px;font-weight:700;
+    color:var(--verde);animation:voa 1s forwards;pointer-events:none;
+  }
+  @keyframes voa{to{opacity:0;transform:translateY(-34px)}}
+  .rodape{display:flex;gap:11px;margin-top:20px;flex-wrap:wrap}
+
+  /* ---------- relatório final ---------- */
+  .final{text-align:center;padding:34px 22px}
+  .patente{
+    width:120px;height:120px;border-radius:50%;margin:0 auto 16px;
+    background:radial-gradient(circle at 35% 30%,#FFB067,var(--laranja));
+    display:grid;place-items:center;font-family:var(--display);font-size:44px;font-weight:700;color:#fff;
+    box-shadow:0 0 0 8px rgba(255,122,41,.18);
+  }
+  .final h2{font-family:var(--display);font-size:23px;margin:0 0 6px;color:var(--escuro)}
+  .final .selos-fim{font-size:30px;letter-spacing:8px;color:var(--laranja);margin:10px 0}
+  .final .selos-fim .off{color:#D8E1F0}
+  .final p{margin:5px 0;color:#5C6E8C;font-size:14.5px}
+
+  .nota{text-align:center;font-size:12.5px;color:#7E93B5;margin-top:26px;line-height:1.8}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+  @media (max-width:520px){.questao{font-size:19px}.painel-grade div{width:25px;height:25px}}
+</style>
+</head>
+<body>
+<div class="area">
+
+  <div class="comando">
+    <div class="comando-topo">
+      <div class="insignia">🚀</div>
+      <div>
+        <h1>Missão Órbita<span>PALAVRAS E NÚMEROS · 3º ANO</span></h1>
+      </div>
+      <button class="btn-som" id="btn-som" onclick="alternarSom()">Som ligado</button>
+    </div>
+    <div class="medidor">
+      <p id="txt-tanque">Combustível: 0 pontos · Posto: Cadete</p>
+      <div class="tanque"><i id="barra-tanque"></i></div>
+    </div>
+  </div>
+
+  <main id="tela-base">
+    <section class="setor">
+      <h2>Setor Alfa · Palavras</h2>
+      <p class="sub">Dicionário, verbos, sons e sufixos</p>
+      <div class="missoes" id="lista-palavras"></div>
+    </section>
+    <section class="setor azul">
+      <h2>Setor Beta · Números</h2>
+      <p class="sub">Multiplicação em todas as formas</p>
+      <div class="missoes" id="lista-numeros"></div>
+    </section>
+    <p class="nota">Cada missão tem 6 desafios e 3 reservas de oxigênio.<br>Errar não encerra a missão — apenas rende menos combustível.</p>
+  </main>
+
+  <main id="tela-voo" class="some">
+    <div class="barra">
+      <button class="btn" onclick="voltarBase()">◀ Base</button>
+      <span class="oxigenio" id="oxigenio"></span>
+      <span class="passo" id="passo"></span>
+    </div>
+    <div class="console" id="console"></div>
+  </main>
+
+  <main id="tela-relatorio" class="some">
+    <div class="console final">
+      <div class="patente" id="patente">A</div>
+      <h2 id="fim-titulo"></h2>
+      <div class="selos-fim" id="fim-selos"></div>
+      <p id="fim-acertos"></p>
+      <p id="fim-pontos"></p>
+      <p id="fim-frase"></p>
+      <div class="rodape" style="justify-content:center">
+        <button class="btn btn-ir" onclick="repetir()">Repetir missão</button>
+        <button class="btn" onclick="voltarBase()">Voltar à base</button>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+/* ===== CONTEÚDO (o mesmo das versões anteriores) ===== */
+const MISSOES = [
+{id:1,area:"palavras",semana:"Semana 1",nome:"O verbete por dentro",sub:"Para que serve e quais são as partes.",perguntas:[
+ {tipo:"mc",enunciado:"Verbete é o nome de quê?",opcoes:["Cada palavra explicada no dicionário, com o seu significado","O título de um livro de histórias","Uma frase que rima com outra"],correta:0,aviso:"Verbete é o conjunto: a palavra + tudo que o dicionário conta sobre ela."},
+ {tipo:"mc",enunciado:"Você leu <em>sarau</em> e não sabe o que significa. O dicionário serve para…",opcoes:["descobrir o significado, a escrita certa e como usar a palavra","descobrir quem inventou a palavra","escolher uma palavra mais bonita"],correta:0,aviso:"O dicionário mostra significado, ortografia, classe gramatical e exemplos de uso."},
+ {tipo:"mc",enunciado:"A palavra que abre o verbete, em destaque, chama-se…",opcoes:["palavra-entrada","exemplo","definição"],correta:0,aviso:"A palavra-entrada vem em negrito e é por ela que procuramos no dicionário."},
+ {tipo:"mc",enunciado:"No verbete <em>cavalo s.m. animal de quatro patas…</em>, o que <em>s.m.</em> quer dizer?",opcoes:["substantivo masculino","som muito alto","singular menor"],correta:0,aviso:"As abreviações mostram a classe gramatical: s.m. = substantivo masculino, s.f. = substantivo feminino, v. = verbo, adj. = adjetivo."},
+ {tipo:"mc",enunciado:"Em <em>pipa s.f. brinquedo de papel que voa preso a uma linha. Soltei minha pipa na praça.</em> — a última frase é…",opcoes:["um exemplo de uso da palavra","outro significado da palavra","a classe gramatical"],correta:0,aviso:"O exemplo mostra a palavra funcionando dentro de uma frase de verdade."},
+ {tipo:"mc",enunciado:"Qual verbete está montado na ordem certa?",opcoes:["gato s.m. animal doméstico da família dos felinos. O gato dormiu no sofá.","animal doméstico gato s.m. O gato dormiu no sofá.","O gato dormiu no sofá. gato s.m. animal doméstico"],correta:0,aviso:"A ordem é sempre: palavra-entrada → classe gramatical → definição → exemplo."}]},
+{id:2,area:"palavras",semana:"Semana 2",nome:"Caçada no dicionário",sub:"Ordem alfabética e palavras-guia.",perguntas:[
+ {tipo:"ordem",enunciado:"Coloque na ordem do dicionário:",itens:["urso","abelha","macaco","foca"],correta:["abelha","foca","macaco","urso"],aviso:"Com letras iniciais diferentes, basta seguir o alfabeto: a, f, m, u."},
+ {tipo:"ordem",enunciado:"Todas começam com <em>c</em>. Olhe a 2ª letra:",itens:["cebola","cinema","casa","cubo"],correta:["casa","cebola","cinema","cubo"],aviso:"Quando a 1ª letra é igual, comparamos a 2ª: a, e, i, u."},
+ {tipo:"ordem",enunciado:"Agora as duas primeiras letras são iguais. Olhe a 3ª:",itens:["mala","mapa","macaco","mãe"],correta:["macaco","mãe","mala","mapa"],aviso:"3ª letra: c, e, l, p. O acento não muda o lugar da letra."},
+ {tipo:"mc",enunciado:"As palavras-guia da página são <em>casa</em> e <em>cavalo</em>. Qual palavra está nessa página?",opcoes:["casca","carro","cebola"],correta:0,aviso:"casa → casca → cavalo. As palavras-guia mostram a primeira e a última palavra da página."},
+ {tipo:"mc",enunciado:"Você quer procurar <em>correndo</em>. Como essa palavra aparece no dicionário?",opcoes:["correr","correndo","corri"],correta:0,aviso:"Verbos entram no dicionário no infinitivo: correr, cantar, dormir."},
+ {tipo:"mc",enunciado:"Procurando <em>tartaruga</em>, o dicionário está aberto na letra <em>P</em>. Você deve…",opcoes:["virar as páginas para a frente, porque T vem depois de P","virar para trás, porque T vem antes de P","começar tudo de novo pela letra A"],correta:0,aviso:"Pensar em qual metade do dicionário a letra está economiza um tempão."}]},
+{id:3,area:"palavras",semana:"Semana 3",nome:"O verbo e suas turmas",sub:"Ação, tempo e as palavras que acompanham.",perguntas:[
+ {tipo:"mc",enunciado:"Qual é o verbo em <em>A menina pintou um quadro enorme</em>?",opcoes:["pintou","menina","enorme"],correta:0,aviso:"O verbo indica a ação: pintou. Quem? A menina. O quê? Um quadro."},
+ {tipo:"mc",enunciado:"Qual combinação faz sentido?",opcoes:["tomar banho","tomar o pé","tomar alto"],correta:0,aviso:"Cada verbo combina com certas palavras: tomamos banho, damos um pulo, fazemos um bolo."},
+ {tipo:"mc",enunciado:"Complete: <em>Ontem eu ___ pipoca no cinema.</em>",opcoes:["comi","como","comerei"],correta:0,aviso:"<em>Ontem</em> pede passado: comi."},
+ {tipo:"mc",enunciado:"<em>Amanhã nós viajaremos para a praia.</em> A ação acontece…",opcoes:["no futuro","no presente","no passado"],correta:0,aviso:"O verbo muda de forma para mostrar quando a ação acontece."},
+ {tipo:"mc",enunciado:"Complete combinando com quem faz: <em>As crianças ___ no parque.</em>",opcoes:["brincam","brinca","brincas"],correta:0,aviso:"Se quem faz está no plural (as crianças), o verbo vai para o plural: brincam."},
+ {tipo:"mc",enunciado:"Em qual frase o verbo NÃO combina com o resto?",opcoes:["Eu escreveram uma carta.","Eu escrevi uma carta.","Eles escreveram uma carta."],correta:0,aviso:"Com <em>eu</em>, o certo é escrevi. <em>Escreveram</em> combina com eles."}]},
+{id:4,area:"palavras",semana:"Semana 4",nome:"AM ou ÃO?",sub:"O passado e o futuro no fim da palavra.",perguntas:[
+ {tipo:"mc",enunciado:"Complete: <em>Ontem os meninos ___ o dia inteiro.</em>",opcoes:["brincaram","brincarão","brincarao"],correta:0,aviso:"Terminou em <em>-am</em>: ação que já aconteceu. A força da voz cai antes: brin-CA-ram."},
+ {tipo:"mc",enunciado:"Complete: <em>No próximo sábado eles ___ na festa.</em>",opcoes:["cantarão","cantaram","cantarã"],correta:0,aviso:"Terminou em <em>-ão</em>: ação que ainda vai acontecer. A força da voz cai no fim: canta-RÃO."},
+ {tipo:"mc",enunciado:"<em>As abelhas voltaram para a colmeia.</em> Quando isso aconteceu?",opcoes:["já aconteceu","vai acontecer amanhã","acontece sempre"],correta:0,aviso:"-AM sempre marca o passado nos verbos."},
+ {tipo:"mc",enunciado:"Qual frase está escrita corretamente?",opcoes:["Amanhã as crianças chegarão cedo.","Amanhã as crianças chegaram cedo.","Ontem as crianças chegarão cedo."],correta:0,aviso:"Amanhã + futuro = -ÃO. Ontem + passado = -AM."},
+ {tipo:"mc",enunciado:"Em qual palavra a voz fica mais forte na última sílaba?",opcoes:["estudarão","estudaram","ambas iguais"],correta:0,aviso:"Esse é o truque: se a força da voz está no fim, escreve-se -ÃO."},
+ {tipo:"mc",enunciado:"<em>Os pintores ___ a casa na semana passada e ___ o muro no mês que vem.</em>",opcoes:["pintaram / pintarão","pintarão / pintaram","pintaram / pintaram"],correta:0,aviso:"Semana passada = -AM. Mês que vem = -ÃO."}]},
+{id:5,area:"palavras",semana:"Semana 5",nome:"Vogais grudadas",sub:"Encontrar o ditongo na sílaba.",perguntas:[
+ {tipo:"mc",enunciado:"Ditongo é…",opcoes:["duas vogais que ficam juntas na MESMA sílaba","duas palavras parecidas","uma sílaba com três letras"],correta:0,aviso:"pai = 1 sílaba, com a e i juntinhos. Isso é ditongo."},
+ {tipo:"mc",enunciado:"Qual palavra tem ditongo?",opcoes:["peixe","saída","poeta"],correta:0,aviso:"pei-xe: e e i na mesma sílaba. Em sa-í-da e po-e-ta as vogais se separam (hiato)."},
+ {tipo:"mc",enunciado:"Como se separam as sílabas de <em>caixa</em>?",opcoes:["cai-xa","ca-i-xa","caix-a"],correta:0,aviso:"O ditongo <em>ai</em> nunca se separa."},
+ {tipo:"mc",enunciado:"Qual palavra NÃO tem ditongo?",opcoes:["moeda","céu","água"],correta:0,aviso:"mo-e-da: as vogais ficam em sílabas diferentes. Isso é hiato, não ditongo."},
+ {tipo:"mc",enunciado:"Ditongo nasal é o que sai meio pelo nariz. Qual palavra tem um?",opcoes:["mão","fala","gato"],correta:0,aviso:"mão, pão, limão, irmã — a vogal com til puxa o som para o nariz."},
+ {tipo:"mc",enunciado:"Quantos ditongos há em <em>papagaio</em>?",opcoes:["1","2","nenhum"],correta:0,aviso:"pa-pa-gai-o: só <em>gai</em> tem duas vogais na mesma sílaba."}]},
+{id:6,area:"palavras",semana:"Semana 6",nome:"O som do S disfarçado",sub:"S, SS, C, Ç, SC e X com o mesmo som.",perguntas:[
+ {tipo:"mc",enunciado:"Complete: <em>pá__aro</em>",opcoes:["ss","s","c"],correta:0,aviso:"Entre duas vogais, o som de S forte pede <em>ss</em>: pássaro, massa, pêssego."},
+ {tipo:"mc",enunciado:"Complete: <em>ca__ador</em> (quem caça)",opcoes:["ç","ss","s"],correta:0,aviso:"O ç só aparece antes de a, o, u: caçador, moça, açúcar."},
+ {tipo:"mc",enunciado:"Complete: <em>__ebola</em>",opcoes:["c","ç","ss"],correta:0,aviso:"Antes de e e i usamos c: cebola, cinema, cidade. Nunca ç."},
+ {tipo:"mc",enunciado:"Qual palavra está escrita corretamente?",opcoes:["nascer","nasser","naçer"],correta:0,aviso:"Algumas palavras guardam o grupo <em>sc</em>: nascer, piscina, crescer, descer."},
+ {tipo:"mc",enunciado:"Em qual palavra o <em>x</em> tem som de S?",opcoes:["próximo","caixa","exame"],correta:0,aviso:"próximo, máximo, trouxe: o x soa como S. Em caixa ele tem som de <em>ch</em>."},
+ {tipo:"mc",enunciado:"Complete: <em>can__ado</em> (com sono)",opcoes:["s","ss","ç"],correta:0,aviso:"Depois de consoante (n, l, r), usamos um s só: cansado, pulso, persiana."}]},
+{id:7,area:"palavras",semana:"Semana 7",nome:"A fábrica de ADA e ADO",sub:"Um sufixo que muda o sentido da palavra.",perguntas:[
+ {tipo:"mc",enunciado:"Uma pancada dada com a cabeça é uma…",opcoes:["cabeçada","cabecinha","cabeçudo"],correta:0,aviso:"-ADA pode indicar golpe: cabeçada, facada, cotovelada, joelhada."},
+ {tipo:"mc",enunciado:"A quantidade que cabe em uma colher é uma…",opcoes:["colherada","colheronha","colherão"],correta:0,aviso:"-ADA também indica porção: colherada, garfada, punhado, dentada."},
+ {tipo:"mc",enunciado:"Um monte de papéis espalhados é uma…",opcoes:["papelada","papelinho","papelaria"],correta:0,aviso:"-ADA pode indicar grande quantidade ou conjunto: papelada, criançada, boiada."},
+ {tipo:"mc",enunciado:"O que significa <em>garfada</em>?",opcoes:["a porção de comida que cabe no garfo","um garfo bem grande","o lugar onde se guardam garfos"],correta:0,aviso:"Repare: garfo + -ada = a porção do garfo."},
+ {tipo:"mc",enunciado:"Qual palavra veio de <em>bicicleta</em> com esse mesmo sufixo?",opcoes:["bicicletada","biciclete","bicicletaria"],correta:0,aviso:"É assim que o português cria palavras novas: pedalada, bicicletada, caminhada."},
+ {tipo:"mc",enunciado:"Em <em>Levei uma bolada no braço</em>, <em>bolada</em> quer dizer…",opcoes:["uma pancada dada pela bola","uma bola muito bonita","um jogo de bola"],correta:0,aviso:"O sufixo -ADA carrega o sentido de golpe recebido."}]},
+{id:8,area:"numeros",semana:"Semanas 1-2",nome:"Fileiras e colunas",sub:"Proporção e configuração retangular.",perguntas:[
+ {tipo:"grade",enunciado:"Quantas peças há neste retângulo?",linhas:4,colunas:5,resposta:20,aviso:"4 fileiras de 5 peças: 4 × 5 = 20. Não precisa contar uma por uma."},
+ {tipo:"mc",enunciado:"Uma caixa de ovos tem 3 fileiras com 6 ovos cada. Qual conta resolve?",opcoes:["3 × 6","3 + 6","6 − 3"],correta:0,aviso:"Fileiras iguais pedem multiplicação: 3 × 6 = 18 ovos."},
+ {tipo:"grade",enunciado:"Escreva o total de peças:",linhas:6,colunas:3,resposta:18,aviso:"6 × 3 = 18. E 3 × 6 dá o mesmo resultado — é só girar o retângulo."},
+ {tipo:"num",enunciado:"Cada pacote tem 4 figurinhas. Quantas figurinhas há em 7 pacotes?",resposta:28,aviso:"7 × 4 = 28. Aqui a ideia é de proporção: a cada pacote, mais 4 figurinhas."},
+ {tipo:"num",enunciado:"Um azulejista fez uma parede com 5 fileiras de 8 azulejos. Quantos azulejos usou?",resposta:40,aviso:"5 × 8 = 40 azulejos."},
+ {tipo:"mc",enunciado:"Uma horta tem 24 pés de alface em fileiras de 6. Quantas fileiras?",opcoes:["4","6","24"],correta:0,aviso:"4 × 6 = 24, então são 4 fileiras. A multiplicação também ajuda a descobrir a parte que falta."}]},
+{id:9,area:"numeros",semana:"Semana 3",nome:"A escada dos zeros",sub:"Multiplicar por 10, 100 e 1000.",perguntas:[
+ {tipo:"num",enunciado:"7 × 10 =",resposta:70,aviso:"Multiplicar por 10 acrescenta 1 zero: 70."},
+ {tipo:"num",enunciado:"25 × 100 =",resposta:2500,aviso:"Por 100 acrescenta 2 zeros: 2500."},
+ {tipo:"num",enunciado:"4 × 1000 =",resposta:4000,aviso:"Por 1000 acrescenta 3 zeros: 4000."},
+ {tipo:"mc",enunciado:"Por que 6 × 10 = 60?",opcoes:["porque cada unidade vira uma dezena","porque 6 e 10 são vizinhos","porque somamos 6 + 10"],correta:0,aviso:"As 6 unidades passam para a casa das dezenas e o zero segura o lugar das unidades."},
+ {tipo:"num",enunciado:"Uma caixa tem 100 clipes. Quantos clipes há em 8 caixas?",resposta:800,aviso:"8 × 100 = 800 clipes."},
+ {tipo:"mc",enunciado:"Qual conta tem resultado 3000?",opcoes:["3 × 1000","30 × 10","300 × 100"],correta:0,aviso:"3 × 1000 = 3000. Cuidado: 30 × 10 = 300 e 300 × 100 = 30000."}]},
+{id:10,area:"numeros",semana:"Semana 4",nome:"O zero e o um",sub:"Dois números com poderes especiais.",perguntas:[
+ {tipo:"num",enunciado:"9 × 1 =",resposta:9,aviso:"Multiplicar por 1 não muda nada: é 1 grupo de 9."},
+ {tipo:"num",enunciado:"8 × 0 =",resposta:0,aviso:"8 grupos de nada dá nada: 0."},
+ {tipo:"mc",enunciado:"Tenho 5 potes e cada um está vazio. Quantas balas tenho?",opcoes:["0","5","1"],correta:0,aviso:"5 × 0 = 0. Essa é a ideia por trás da regra."},
+ {tipo:"num",enunciado:"137 × 0 =",resposta:0,aviso:"Qualquer número vezes 0 é 0, por maior que ele seja."},
+ {tipo:"num",enunciado:"264 × 1 =",resposta:264,aviso:"Qualquer número vezes 1 continua ele mesmo."},
+ {tipo:"mc",enunciado:"Qual frase está certa?",opcoes:["Todo número multiplicado por 0 dá 0.","Todo número multiplicado por 0 dá ele mesmo.","0 × 0 = 1"],correta:0,aviso:"Guarde: × 0 apaga tudo; × 1 mantém tudo."}]},
+{id:11,area:"numeros",semana:"Semana 5",nome:"Quebrando o número",sub:"Multiplicação por decomposição.",perguntas:[
+ {tipo:"mc",enunciado:"Para calcular 14 × 3, podemos quebrar o 14 em…",opcoes:["10 + 4","7 + 7 + 1","14 + 3"],correta:0,aviso:"Separar em dezena e unidade deixa a conta fácil: (10 × 3) + (4 × 3)."},
+ {tipo:"num",enunciado:"Agora termine: 10 × 3 = 30 e 4 × 3 = 12. Então 14 × 3 =",resposta:42,aviso:"30 + 12 = 42."},
+ {tipo:"num",enunciado:"Use a mesma ideia: 23 × 4 = (20 × 4) + (3 × 4) =",resposta:92,aviso:"80 + 12 = 92."},
+ {tipo:"num",enunciado:"32 × 3 = (30 × 3) + (2 × 3) =",resposta:96,aviso:"90 + 6 = 96."},
+ {tipo:"mc",enunciado:"Qual decomposição está correta para 45 × 2?",opcoes:["(40 × 2) + (5 × 2)","(40 + 2) × (5 + 2)","(45 × 2) + (45 × 2)"],correta:0,aviso:"80 + 10 = 90. Quebramos só um dos números, em dezenas e unidades."},
+ {tipo:"num",enunciado:"51 × 5 =",resposta:255,aviso:"(50 × 5) + (1 × 5) = 250 + 5 = 255."}]},
+{id:12,area:"numeros",semana:"Semanas 6-7",nome:"Vai um!",sub:"Multiplicação com e sem reagrupamento.",perguntas:[
+ {tipo:"num",enunciado:"23 × 2 = (sem reagrupar)",resposta:46,aviso:"3 × 2 = 6 unidades e 2 × 2 = 4 dezenas. Nada passa de 9, então nada 'vai'."},
+ {tipo:"mc",enunciado:"Em 27 × 3, começamos por 7 × 3 = 21. O que fazemos com o 21?",opcoes:["escrevemos o 1 e o 2 vai para as dezenas","escrevemos 21 inteiro embaixo","escrevemos só o 2"],correta:0,aviso:"21 unidades = 2 dezenas + 1 unidade. As 2 dezenas sobem: é o reagrupamento."},
+ {tipo:"num",enunciado:"Termine a conta: 27 × 3 =",resposta:81,aviso:"7 × 3 = 21 (fica 1, vai 2). 2 × 3 = 6, mais 2 = 8. Resultado: 81."},
+ {tipo:"num",enunciado:"34 × 2 =",resposta:68,aviso:"4 × 2 = 8 e 3 × 2 = 6. Sem reagrupamento: 68."},
+ {tipo:"num",enunciado:"46 × 4 =",resposta:184,aviso:"6 × 4 = 24 (fica 4, vai 2). 4 × 4 = 16, mais 2 = 18. Resultado: 184."},
+ {tipo:"mc",enunciado:"Em qual conta NÃO precisamos reagrupar?",opcoes:["21 × 4","28 × 3","35 × 2"],correta:0,aviso:"21 × 4 = 84: nenhum passo passa de 9. Nas outras, é preciso 'ir um'."}]}
+];
+
+/* ===== ESTADO ===== */
+const selos={}; let pontos=0;
+let missao=null,i=0,acertos=0,oxi=3,pontosMissao=0,sequencia=0,travado=false,somLigado=true;
+const $=id=>document.getElementById(id);
+
+/* ===== SOM ===== */
+let ctx=null;
+function bip(f,d,t){
+  if(!somLigado)return;
+  try{
+    ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=t||"sine";o.frequency.value=f;g.gain.value=.06;
+    o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+d);
+  }catch(e){}
+}
+const somOk=()=>{bip(620,.09);setTimeout(()=>bip(880,.14),90)};
+const somNo=()=>bip(200,.2,"triangle");
+const somToque=()=>bip(480,.05);
+function alternarSom(){somLigado=!somLigado;$("btn-som").textContent=somLigado?"Som ligado":"Som desligado"}
+
+/* ===== BASE ===== */
+function montarBase(){
+  $("lista-palavras").innerHTML="";$("lista-numeros").innerHTML="";
+  MISSOES.forEach((m,k)=>{
+    const b=document.createElement("button");
+    b.className="missao"+(m.area==="numeros"?" azul":"");
+    b.onclick=()=>{somToque();iniciar(m.id)};
+    b.innerHTML=`<span class="semana">${m.semana}</span>
+      <span class="selo">${k+1}</span>
+      <span class="nome">${m.nome}</span>
+      <span class="desc">${m.sub}</span>
+      <span class="selos">${selosHTML(selos[m.id]||0)}</span>`;
+    (m.area==="palavras"?$("lista-palavras"):$("lista-numeros")).appendChild(b);
+  });
+  atualizarTanque();
+}
+function selosHTML(n){let s="";for(let k=0;k<3;k++)s+=k<n?"★":'<span class="off">★</span>';return s}
+function atualizarTanque(){
+  const max=3600,pct=Math.min(100,pontos/max*100);
+  $("barra-tanque").style.width=pct+"%";
+  const posto=pontos>=2400?"Comandante":pontos>=1200?"Piloto":pontos>=400?"Astronauta":"Cadete";
+  $("txt-tanque").textContent=`Combustível: ${pontos} pontos · Posto: ${posto}`;
+}
+
+/* ===== VOO ===== */
+function iniciar(id){
+  missao=MISSOES.find(m=>m.id===id);
+  i=0;acertos=0;oxi=3;pontosMissao=0;sequencia=0;
+  $("tela-base").classList.add("some");$("tela-relatorio").classList.add("some");
+  $("tela-voo").classList.remove("some");
+  desenhar();window.scrollTo(0,0);
+}
+function repetir(){iniciar(missao.id)}
+function voltarBase(){
+  $("tela-voo").classList.add("some");$("tela-relatorio").classList.add("some");
+  $("tela-base").classList.remove("some");montarBase();window.scrollTo(0,0);
+}
+function pintarOxi(){
+  let s="";for(let k=0;k<3;k++)s+=k<oxi?"●":'<span class="off">●</span>';
+  $("oxigenio").innerHTML=s;
+}
+
+let passoOrdem=0,errouOrdem=false;
+function desenhar(){
+  travado=false;passoOrdem=0;errouOrdem=false;
+  const q=missao.perguntas[i];
+  pintarOxi();
+  $("passo").textContent=`Desafio ${i+1} de ${missao.perguntas.length} · ${pontosMissao} pts`;
+
+  let corpo="";
+  if(q.tipo==="mc"){
+    corpo=`<div class="escolhas">`+q.opcoes.map((o,k)=>`<button class="esc" onclick="marcar(${k})">${o}</button>`).join("")+`</div>`;
+  }
+  if(q.tipo==="num"){
+    corpo=`<div class="teclado"><input id="entrada" type="text" inputmode="numeric" autocomplete="off" placeholder="?">
+      <button class="btn btn-ir" onclick="conferir()">Conferir</button></div>`;
+  }
+  if(q.tipo==="grade"){
+    let p="";for(let k=0;k<q.linhas*q.colunas;k++)p+=`<div style="animation-delay:${k*20}ms"></div>`;
+    corpo=`<div class="painel-grade" style="grid-template-columns:repeat(${q.colunas},auto)">${p}</div>
+      <p class="medida">${q.linhas} fileiras × ${q.colunas} peças</p>
+      <div class="teclado"><input id="entrada" type="text" inputmode="numeric" autocomplete="off" placeholder="?">
+      <button class="btn btn-ir" onclick="conferir()">Conferir</button></div>`;
+  }
+  if(q.tipo==="ordem"){
+    const b=embaralhar([...q.itens]);
+    corpo=`<div class="esteira" id="esteira"></div><div style="display:flex;flex-wrap:wrap;gap:9px">`+
+      b.map(p=>`<button class="cartao" onclick="ordenar(this,'${p}')">${p}</button>`).join("")+`</div>`;
+  }
+
+  $("console").innerHTML=`<p class="etiqueta">${missao.nome}</p>
+    <p class="questao">${q.enunciado}</p>${corpo}
+    <div id="retorno"></div><div class="rodape" id="rodape"></div>`;
+
+  const e=$("entrada");
+  if(e){e.focus();e.addEventListener("keydown",ev=>{if(ev.key==="Enter")conferir()})}
+}
+function embaralhar(a){for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a}
+
+function marcar(k){
+  if(travado)return;travado=true;
+  const q=missao.perguntas[i],bts=document.querySelectorAll(".esc");
+  bts.forEach((b,n)=>{b.disabled=true;if(n===q.correta)b.classList.add("ok");else if(n===k)b.classList.add("no")});
+  avaliar(k===q.correta,q);
+}
+function conferir(){
+  if(travado)return;
+  const q=missao.perguntas[i],e=$("entrada"),v=e.value.replace(/[\s.]/g,"");
+  if(v===""){e.focus();return}
+  travado=true;e.disabled=true;
+  const ok=Number(v)===q.resposta;
+  e.style.borderColor=ok?"#4ADE80":"#F87171";
+  if(!ok)$("retorno").innerHTML=`<p class="medida" style="color:#B4483F;margin-top:10px">Resposta certa: <strong>${q.resposta}</strong></p>`;
+  avaliar(ok,q);
+}
+function ordenar(bt,palavra){
+  if(travado)return;
+  const q=missao.perguntas[i];
+  if(palavra===q.correta[passoOrdem]){
+    somToque();bt.style.display="none";
+    const f=document.createElement("span");f.className="cartao fixo";f.textContent=palavra;
+    $("esteira").appendChild(f);passoOrdem++;
+    if(passoOrdem===q.correta.length){travado=true;avaliar(!errouOrdem,q)}
+  }else{
+    errouOrdem=true;somNo();
+    bt.classList.add("balanca");setTimeout(()=>bt.classList.remove("balanca"),310);
+  }
+}
+
+function avaliar(ok,q){
+  let ganho;
+  if(ok){
+    acertos++;sequencia++;ganho=100+(sequencia-1)*20;somOk();
+    const f=document.createElement("div");f.className="voa";f.textContent="+"+ganho;
+    $("console").appendChild(f);setTimeout(()=>f.remove(),1000);
+  }else{
+    sequencia=0;oxi=Math.max(0,oxi-1);ganho=10;somNo();pintarOxi();
+  }
+  pontosMissao+=ganho;
+  const ultimo=i===missao.perguntas.length-1;
+  $("retorno").innerHTML+=`<div class="relatorio ${ok?"ok":"no"}">
+    <strong>${ok?"Acertou! +"+ganho+" de combustível":"Quase lá. +"+ganho+" de combustível"}</strong>${q.aviso}</div>`;
+  $("rodape").innerHTML=`<button class="btn btn-ir" onclick="avancar()">${ultimo?"Ver relatório":"Próximo desafio"}</button>`;
+  $("rodape").firstChild.focus();
+}
+function avancar(){
+  somToque();
+  if(i<missao.perguntas.length-1){i++;desenhar()}else encerrar();
+}
+
+/* ===== RELATÓRIO ===== */
+function encerrar(){
+  const total=missao.perguntas.length,pct=acertos/total;
+  const s=pct===1?3:pct>=.7?2:1;
+  if(s>(selos[missao.id]||0))selos[missao.id]=s;
+  pontos+=pontosMissao;
+  const patente=pct===1?"Comandante":pct>=.83?"Piloto":pct>=.67?"Astronauta":"Cadete";
+  $("tela-voo").classList.add("some");$("tela-relatorio").classList.remove("some");
+  $("patente").textContent=patente[0];
+  $("fim-titulo").textContent=patente+" — "+missao.nome;
+  $("fim-selos").innerHTML=selosHTML(s);
+  $("fim-acertos").textContent=`Acertos: ${acertos} de ${total} · Oxigênio restante: ${oxi}`;
+  $("fim-pontos").textContent=`Combustível da missão: ${pontosMissao} · Total: ${pontos}`;
+  $("fim-frase").textContent=pct===1?"Missão perfeita. Pode decolar para a próxima."
+    :pct>=.7?"Muito bom. Repita para conseguir as três estrelas."
+    :"Bom começo. Refaça esta missão antes de seguir.";
+  if(pct===1){bip(620,.1);setTimeout(()=>bip(780,.1),120);setTimeout(()=>bip(1040,.24),250)}
+  window.scrollTo(0,0);
+}
+montarBase();
+</script>
+</body>
+</html>
